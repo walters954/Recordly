@@ -1,7 +1,10 @@
 {
 	"recording": {
-		"disableSystemAudio": "Отключить системные звуки",
-		"enableSystemAudio": "Включить системные звуки",
+		"desktopAudio": "Системный звук",
+		"captureDesktopAudio": "Записывать системный звук",
+		"captureDesktopAudioHint": "Сохраняется как отдельная аудиодорожка",
+		"on": "Вкл",
+		"off": "Выкл",
 		"disableMicrophone": "Отключить микрофон",
 		"enableMicrophone": "Включить микрофон",
 		"micToggleDisabledTip": "Нельзя переключать микрофон во время записи",

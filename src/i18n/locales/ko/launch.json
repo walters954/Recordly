@@ -1,7 +1,10 @@
 {
 	"recording": {
-		"disableSystemAudio": "시스템 오디오 끄기",
-		"enableSystemAudio": "시스템 오디오 켜기",
+		"desktopAudio": "데스크톱 오디오",
+		"captureDesktopAudio": "데스크톱 오디오 캡처",
+		"captureDesktopAudioHint": "별도 오디오 트랙으로 저장됨",
+		"on": "켜짐",
+		"off": "꺼짐",
 		"disableMicrophone": "마이크 끄기",
 		"enableMicrophone": "마이크 켜기",
 		"micToggleDisabledTip": "녹음 중에는 마이크를 전환할 수 없습니다",

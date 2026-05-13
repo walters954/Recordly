@@ -271,13 +271,13 @@ const TimelineEditor = forwardRef<TimelineEditorHandle, TimelineEditorProps>(
 				if (systemSidecarPeaks)
 					tracks.push({
 						id: "system",
-						label: t("audio.systemLabel", "Source System"),
+						label: t("audio.systemLabel", "System Audio"),
 						peaks: systemSidecarPeaks,
 					});
 				if (micSidecarPeaks)
 					tracks.push({
 						id: "mic",
-						label: t("audio.micLabel", "Source Mic"),
+						label: t("audio.micLabel", "Microphone"),
 						peaks: micSidecarPeaks,
 					});
 				return tracks;
@@ -286,7 +286,7 @@ const TimelineEditor = forwardRef<TimelineEditorHandle, TimelineEditorProps>(
 				? [
 						{
 							id: "mixed",
-							label: t("audio.mixedLabel", "Source"),
+							label: t("audio.mixedLabel", "Source Audio"),
 							peaks: sourceAudioPeaks,
 						},
 					]

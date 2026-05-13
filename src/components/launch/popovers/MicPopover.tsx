@@ -1,10 +1,11 @@
 import { MicrophoneSlashIcon, SpeakerHighIcon, SpeakerXIcon } from "@phosphor-icons/react";
+import type { ReactElement } from "react";
 import { useScopedT } from "@/contexts/I18nContext";
-import { DropdownItem, HudPopover, MicDeviceRow } from "./PopoverScaffold";
+import { cn } from "@/lib/utils";
+import styles from "../LaunchWindow.module.css";
 import { useLaunchPopoverCoordinator } from "./LaunchPopoverCoordinator";
 import type { DeviceOption } from "./launchPopoverTypes";
-import type { ReactElement } from "react";
-import styles from "../LaunchWindow.module.css";
+import { DropdownItem, HudPopover, MicDeviceRow } from "./PopoverScaffold";
 
 const POPOVER_ID = "mic";
 
@@ -51,16 +52,37 @@ export function MicPopover({
 			trigger={trigger}
 			align="start"
 		>
-			<div className={styles.ddLabel}>{t("recording.microphone")}</div>
-			<DropdownItem
-				icon={systemAudioEnabled ? <SpeakerHighIcon size={16} /> : <SpeakerXIcon size={16} />}
-				selected={systemAudioEnabled}
+			<div className={styles.ddLabel}>{t("recording.desktopAudio")}</div>
+			<button
+				type="button"
+				className={cn(
+					styles.systemAudioToggle,
+					systemAudioEnabled && styles.systemAudioToggleOn,
+				)}
 				onClick={onToggleSystemAudio}
+				aria-pressed={systemAudioEnabled}
 			>
-				{systemAudioEnabled
-					? t("recording.disableSystemAudio")
-					: t("recording.enableSystemAudio")}
-			</DropdownItem>
+				<span className={styles.systemAudioIcon}>
+					{systemAudioEnabled ? (
+						<SpeakerHighIcon size={18} />
+					) : (
+						<SpeakerXIcon size={18} />
+					)}
+				</span>
+				<span className={styles.systemAudioCopy}>
+					<span className={styles.systemAudioTitle}>
+						{t("recording.captureDesktopAudio")}
+					</span>
+					<span className={styles.systemAudioHint}>
+						{t("recording.captureDesktopAudioHint")}
+					</span>
+				</span>
+				<span className={styles.systemAudioPill}>
+					{systemAudioEnabled ? t("recording.on") : t("recording.off")}
+				</span>
+			</button>
+			<div className={styles.popoverDivider} />
+			<div className={styles.ddLabel}>{t("recording.microphone")}</div>
 			{microphoneEnabled && (
 				<DropdownItem
 					icon={<MicrophoneSlashIcon size={16} />}
@@ -73,7 +95,9 @@ export function MicPopover({
 				</DropdownItem>
 			)}
 			{!microphoneEnabled && (
-				<div className="px-3 py-2 text-xs text-[var(--launch-text-muted)]">{t("recording.selectMicToEnable")}</div>
+				<div className="px-3 py-2 text-xs text-[var(--launch-text-muted)]">
+					{t("recording.selectMicToEnable")}
+				</div>
 			)}
 			{devices.map((device) => (
 				<MicDeviceRow
@@ -81,13 +105,16 @@ export function MicPopover({
 					device={device}
 					selected={
 						microphoneEnabled &&
-						(microphoneDeviceId === device.deviceId || selectedDeviceId === device.deviceId)
+						(microphoneDeviceId === device.deviceId ||
+							selectedDeviceId === device.deviceId)
 					}
 					onSelect={() => onSelectDevice(device.deviceId)}
 				/>
 			))}
 			{devices.length === 0 && (
-				<div className="text-center text-xs text-[var(--launch-text-muted)] py-4">{t("recording.noMicrophonesFound")}</div>
+				<div className="text-center text-xs text-[var(--launch-text-muted)] py-4">
+					{t("recording.noMicrophonesFound")}
+				</div>
 			)}
 		</HudPopover>
 	);

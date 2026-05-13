@@ -1,7 +1,10 @@
 {
 	"recording": {
-		"disableSystemAudio": "Disable system audio",
-		"enableSystemAudio": "Enable system audio",
+		"desktopAudio": "Desktop Audio",
+		"captureDesktopAudio": "Capture desktop audio",
+		"captureDesktopAudioHint": "Saved as a separate audio track",
+		"on": "On",
+		"off": "Off",
 		"disableMicrophone": "Disable microphone",
 		"enableMicrophone": "Enable microphone",
 		"micToggleDisabledTip": "Microphone cannot be toggled during recording",

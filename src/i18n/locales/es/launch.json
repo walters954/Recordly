@@ -1,7 +1,10 @@
 {
 	"recording": {
-		"disableSystemAudio": "Desactivar audio del sistema",
-		"enableSystemAudio": "Activar audio del sistema",
+		"desktopAudio": "Audio del sistema",
+		"captureDesktopAudio": "Capturar audio del sistema",
+		"captureDesktopAudioHint": "Se guarda como pista de audio independiente",
+		"on": "Sí",
+		"off": "No",
 		"disableMicrophone": "Desactivar micrófono",
 		"enableMicrophone": "Activar micrófono",
 		"micToggleDisabledTip": "El micrófono no se puede alternar durante la grabación",
