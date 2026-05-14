@@ -211,9 +211,9 @@
 		"volume": "Volume",
 		"normalize": "Normalize",
 		"sourceTracksTitle": "Clip Source Audio",
-		"systemLabel": "Source System",
-		"micLabel": "Source Mic",
-		"mixedLabel": "Source",
+		"systemLabel": "System Audio",
+		"micLabel": "Microphone",
+		"mixedLabel": "Source Audio",
 		"deleteRegion": "Delete Audio"
 	}
 }

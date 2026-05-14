@@ -95,8 +95,6 @@
 	color: #4eeeb0;
 }
 
-
-
 .menuCard {
 	width: 300px;
 	max-height: 400px;
@@ -173,6 +171,104 @@
 .ddItemSelected {
 	background: var(--launch-selected);
 	color: var(--launch-accent);
+}
+
+.systemAudioToggle {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	padding: 10px 12px;
+	margin: 0 2px;
+	border-radius: 10px;
+	border: 1px solid var(--launch-border);
+	background: var(--launch-hover);
+	color: var(--launch-text-muted);
+	cursor: pointer;
+	text-align: left;
+	transition:
+		background 0.15s ease,
+		border-color 0.15s ease,
+		color 0.15s ease;
+}
+
+.systemAudioToggle:hover {
+	background: var(--launch-selected);
+	color: var(--launch-text);
+}
+
+.systemAudioToggleOn {
+	background: color-mix(in srgb, var(--launch-accent) 12%, transparent);
+	border-color: color-mix(in srgb, var(--launch-accent) 50%, transparent);
+	color: var(--launch-text);
+}
+
+.systemAudioToggleOn:hover {
+	background: color-mix(in srgb, var(--launch-accent) 18%, transparent);
+}
+
+.systemAudioIcon {
+	display: inline-flex;
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
+	align-items: center;
+	justify-content: center;
+	background: var(--launch-bar-bg);
+	color: var(--launch-text-muted);
+	flex-shrink: 0;
+}
+
+.systemAudioToggleOn .systemAudioIcon {
+	background: color-mix(in srgb, var(--launch-accent) 25%, transparent);
+	color: var(--launch-accent);
+}
+
+.systemAudioCopy {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
+	min-width: 0;
+}
+
+.systemAudioTitle {
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.2;
+}
+
+.systemAudioHint {
+	font-size: 10px;
+	color: var(--launch-text-muted);
+	line-height: 1.2;
+}
+
+.systemAudioPill {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 36px;
+	padding: 4px 8px;
+	border-radius: 999px;
+	font-size: 9px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	background: var(--launch-border-strong);
+	color: var(--launch-text-muted);
+	flex-shrink: 0;
+}
+
+.systemAudioToggleOn .systemAudioPill {
+	background: var(--launch-accent);
+	color: #fff;
+}
+
+.popoverDivider {
+	height: 1px;
+	background: var(--launch-border);
+	margin: 8px 4px;
 }
 
 .finalizingState {

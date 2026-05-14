@@ -1,7 +1,10 @@
 {
 	"recording": {
-		"disableSystemAudio": "禁用系统音频",
-		"enableSystemAudio": "启用系统音频",
+		"desktopAudio": "桌面音频",
+		"captureDesktopAudio": "捕获桌面音频",
+		"captureDesktopAudioHint": "保存为独立音频轨道",
+		"on": "开",
+		"off": "关",
 		"disableMicrophone": "禁用麦克风",
 		"enableMicrophone": "启用麦克风",
 		"micToggleDisabledTip": "录制过程中无法切换麦克风",
