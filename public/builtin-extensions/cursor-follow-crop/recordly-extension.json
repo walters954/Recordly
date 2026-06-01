@@ -1,0 +1,11 @@
+{
+  "id": "recordly.cursor-follow-crop",
+  "name": "Cursor Follow Crop",
+  "version": "1.0.0",
+  "description": "Pans the crop viewport each frame to keep the cursor in frame. Optional text cursor focus mode locks the viewport to the typing area while the mouse is stationary.",
+  "author": "Recordly",
+  "license": "MIT",
+  "engine": ">=1.3.0",
+  "main": "index.js",
+  "permissions": ["crop", "ui"]
+}
