@@ -11,6 +11,8 @@ import type {
 	ContributedCursorStyle,
 	ContributedFrame,
 	ContributedWallpaper,
+	CropTransformHookContext,
+	CropTransformHookFn,
 	CursorEffectContext,
 	CursorEffectFn,
 	ExtensionEvent,
@@ -91,6 +93,11 @@ interface RegisteredCursorEffect {
 	effect: CursorEffectFn;
 }
 
+interface RegisteredCropTransformHook {
+	extensionId: string;
+	hook: CropTransformHookFn;
+}
+
 interface RegisteredSettingsPanel {
 	extensionId: string;
 	panel: ExtensionSettingsPanel;
@@ -130,6 +137,7 @@ export class ExtensionHost {
 	private activeExtensions = new Map<string, ActiveExtension>();
 	private renderHooks: RegisteredRenderHook[] = [];
 	private cursorEffects: RegisteredCursorEffect[] = [];
+	private cropTransformHooks: RegisteredCropTransformHook[] = [];
 	private frames: FrameInstance[] = [];
 	private eventHandlers = new Map<
 		ExtensionEventType,
@@ -339,6 +347,31 @@ export class ExtensionHost {
 			}
 		}
 		return anyActive;
+	}
+
+	/**
+	 * Run all registered crop transform hooks in registration order.
+	 * Each hook receives the output of the previous hook as its baseCrop.
+	 * Returns the final effective crop region.
+	 */
+	executeCropTransformHooks(
+		baseCrop: { x: number; y: number; width: number; height: number },
+		ctx: CropTransformHookContext,
+	): { x: number; y: number; width: number; height: number } {
+		let crop = baseCrop;
+		for (const entry of this.cropTransformHooks) {
+			try {
+				crop = entry.hook(crop, ctx);
+			} catch (err) {
+				console.warn(`[extensions] Crop transform hook error (${entry.extensionId}):`, err);
+			}
+		}
+		return crop;
+	}
+
+	/** Returns true if any crop transform hooks are registered. */
+	hasCropTransformHooks(): boolean {
+		return this.cropTransformHooks.length > 0;
 	}
 
 	/**
@@ -684,6 +717,19 @@ export class ExtensionHost {
 				const dispose = () => {
 					const index = host.renderHooks.indexOf(entry);
 					if (index >= 0) host.renderHooks.splice(index, 1);
+				};
+				disposables.push(dispose);
+				return dispose;
+			},
+
+			registerCropTransformHook(hook: CropTransformHookFn): () => void {
+				requirePermission("crop", "registerCropTransformHook");
+				const entry: RegisteredCropTransformHook = { extensionId, hook };
+				host.cropTransformHooks.push(entry);
+
+				const dispose = () => {
+					const index = host.cropTransformHooks.indexOf(entry);
+					if (index >= 0) host.cropTransformHooks.splice(index, 1);
 				};
 				disposables.push(dispose);
 				return dispose;

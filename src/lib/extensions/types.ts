@@ -43,7 +43,8 @@ export type ExtensionPermission =
 	| "timeline" // Observe timeline lifecycle events
 	| "ui" // Register settings panels and frames
 	| "assets" // Resolve bundled asset paths
-	| "export"; // Hook into export lifecycle
+	| "export" // Hook into export lifecycle
+	| "crop"; // Register crop transform hooks
 
 /**
  * Optional manifest metadata for packaged assets.
@@ -315,6 +316,50 @@ export type RenderHookPhase =
 export type RenderHookFn = (ctx: RenderHookContext) => void;
 
 // ---------------------------------------------------------------------------
+// Extension API — Crop Transform Hooks
+// ---------------------------------------------------------------------------
+
+/**
+ * Context passed to crop transform hooks each frame.
+ * The hook receives the crop region already computed by the built-in cursor
+ * follow algorithm (or the static base crop if that feature is disabled) and
+ * may return a modified region. The returned region becomes the effective crop
+ * for that frame in both the editor preview and the export pipeline.
+ */
+export interface CropTransformHookContext {
+	/** Current playback time in ms */
+	timeMs: number;
+	/** Total video duration in ms */
+	durationMs: number;
+	/** Raw cursor telemetry samples for the current source video */
+	cursorTelemetry: Array<{
+		timeMs: number;
+		cx: number;
+		cy: number;
+		cursorType?: string;
+		interactionType?: string;
+	}>;
+	/** Source video dimensions */
+	videoWidth: number;
+	videoHeight: number;
+}
+
+/**
+ * A function registered by an extension to override or modify the per-frame
+ * crop region. Called after the built-in cursor follow algorithm runs.
+ *
+ * Return a new `CropRegion` to replace the current crop, or return the
+ * `baseCrop` argument unchanged to leave it unmodified.
+ *
+ * Multiple hooks are chained: the output of hook N becomes the `baseCrop`
+ * input of hook N+1.
+ */
+export type CropTransformHookFn = (
+	baseCrop: { x: number; y: number; width: number; height: number },
+	ctx: CropTransformHookContext,
+) => { x: number; y: number; width: number; height: number };
+
+// ---------------------------------------------------------------------------
 // Extension API — Cursor Effect Hooks
 // ---------------------------------------------------------------------------
 
@@ -418,6 +463,18 @@ export interface ExtensionSettingsPanel {
 export interface RecordlyExtensionAPI {
 	/** Register a render hook at a specific pipeline phase */
 	registerRenderHook(phase: RenderHookPhase, hook: RenderHookFn): () => void;
+
+	/**
+	 * Register a crop transform hook.
+	 *
+	 * The hook is called every frame after the built-in cursor follow algorithm
+	 * and receives the current effective crop region. Return a modified region
+	 * to override the crop for that frame, or return `baseCrop` unchanged to
+	 * pass it through. Multiple hooks are chained in registration order.
+	 *
+	 * Requires the `"crop"` permission.
+	 */
+	registerCropTransformHook(hook: CropTransformHookFn): () => void;
 
 	/** Register a cursor click effect */
 	registerCursorEffect(effect: CursorEffectFn): () => void;

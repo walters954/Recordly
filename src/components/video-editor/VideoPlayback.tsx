@@ -2355,6 +2355,30 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 
 				applyTransform({ scale: appliedScale, x: appliedX, y: appliedY }, targetFocus);
 
+				// Extension crop transform hooks — allow plugins to override the per-frame crop.
+				if (extensionHost.hasCropTransformHooks()) {
+					const sprite = videoSpriteRef.current;
+					const lockedDims = lockedVideoDimensionsRef.current;
+					const baseCrop = baseMaskRef.current.sourceCrop;
+					if (sprite && lockedDims && baseCrop) {
+						const effectiveCrop = extensionHost.executeCropTransformHooks(baseCrop, {
+							timeMs: currentTimeRef.current,
+							durationMs: 0,
+							cursorTelemetry: cursorTelemetryRef.current,
+							videoWidth: lockedDims.width,
+							videoHeight: lockedDims.height,
+						});
+						if (effectiveCrop !== baseCrop) {
+							const fullVideoDisplayWidth = lockedDims.width * baseScaleRef.current;
+							const fullVideoDisplayHeight = lockedDims.height * baseScaleRef.current;
+							const dx = (effectiveCrop.x - baseCrop.x) * fullVideoDisplayWidth;
+							const dy = (effectiveCrop.y - baseCrop.y) * fullVideoDisplayHeight;
+							sprite.position.set(baseOffsetRef.current.x - dx, baseOffsetRef.current.y - dy);
+							baseMaskRef.current.sourceCrop = { ...effectiveCrop };
+						}
+					}
+				}
+
 				applyWebcamBubbleLayout(animationStateRef.current.appliedScale || 1);
 
 				const timeMs = currentTimeRef.current;

@@ -1678,6 +1678,8 @@ export class FrameRenderer {
 			this.updateAnimationState(timeMs);
 		}
 
+		this.applyExtensionCropTransform(timeMs, layoutCache);
+
 		applyZoomTransform({
 			cameraContainer: this.cameraContainer,
 			zoomBlurFilter: this.zoomBlurFilter,
@@ -1892,6 +1894,40 @@ export class FrameRenderer {
 				point.interactionType,
 			);
 		}
+	}
+
+	/**
+	 * Apply any extension crop transform hooks for the current frame.
+	 * Called after updateLayout() so the base crop is already set in layoutCache.
+	 * Adjusts the video sprite position if an extension modifies the crop region.
+	 */
+	private applyExtensionCropTransform(timeMs: number, layoutCache: LayoutCache): void {
+		if (!extensionHost.hasCropTransformHooks()) return;
+		if (!this.videoSprite) return;
+
+		const baseCrop = this.config.cropRegion;
+		if (!baseCrop) return;
+
+		const effectiveCrop = extensionHost.executeCropTransformHooks(
+			layoutCache.maskRect.sourceCrop ?? baseCrop,
+			{
+				timeMs,
+				durationMs: 0,
+				cursorTelemetry: this.config.cursorTelemetry ?? [],
+				videoWidth: this.config.videoWidth,
+				videoHeight: this.config.videoHeight,
+			},
+		);
+
+		const fullVideoDisplayWidth = this.config.videoWidth * layoutCache.baseScale;
+		const fullVideoDisplayHeight = this.config.videoHeight * layoutCache.baseScale;
+		const dx = (effectiveCrop.x - baseCrop.x) * fullVideoDisplayWidth;
+		const dy = (effectiveCrop.y - baseCrop.y) * fullVideoDisplayHeight;
+		this.videoSprite.position.set(
+			layoutCache.baseOffset.x - dx,
+			layoutCache.baseOffset.y - dy,
+		);
+		layoutCache.maskRect.sourceCrop = effectiveCrop;
 	}
 
 	private updateLayout(): void {
