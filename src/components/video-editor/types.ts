@@ -497,6 +497,32 @@ export const DEFAULT_CROP_REGION: CropRegion = {
 	height: 1,
 };
 
+export type CursorFollowCropPreviewMode = "source" | "output";
+
+export interface CursorFollowCropSettings {
+	enabled: boolean;
+	/** Safe-zone inset 0..0.49 — fraction of viewport edge before camera pans. */
+	safeZoneRatio: number;
+	/** 0..1, smoothing applied per frame (higher = slower follow, less jitter). */
+	smoothness: number;
+	/** Editor-only: which view to show in the crop panel. */
+	previewMode: CursorFollowCropPreviewMode;
+	/**
+	 * When true: viewport locks to the text I-beam position while typing and
+	 * only aggressively follows the mouse when it's actively moving. Mouse
+	 * always wins; transitions are debounced to avoid jarring cuts.
+	 */
+	trackTextCursor: boolean;
+}
+
+export const DEFAULT_CURSOR_FOLLOW_CROP: CursorFollowCropSettings = {
+	enabled: false,
+	safeZoneRatio: 0.25,
+	smoothness: 0.5,
+	previewMode: "source",
+	trackTextCursor: false,
+};
+
 export interface Padding {
 	top: number;
 	bottom: number;

@@ -165,6 +165,12 @@ import {
 	resetCursorFollowCamera,
 	SNAP_TO_EDGES_RATIO_AUTO,
 } from "./videoPlayback/cursorFollowCamera";
+import {
+	type CursorFollowCropState,
+	computeCursorFollowCrop,
+	createCursorFollowCropState,
+	resetCursorFollowCropState,
+} from "./videoPlayback/cursorFollowCrop";
 import { clampFocusToStage as clampFocusToStageUtil } from "./videoPlayback/focusUtils";
 import { layoutVideoContent as layoutVideoContentUtil } from "./videoPlayback/layoutUtils";
 import { updateOverlayIndicator } from "./videoPlayback/overlayUtils";
@@ -350,6 +356,7 @@ interface VideoPlaybackProps {
 	padding?: Padding | number;
 	frame?: string | null;
 	cropRegion?: import("./types").CropRegion;
+	cursorFollowCrop?: import("./types").CursorFollowCropSettings;
 	webcam?: WebcamOverlaySettings;
 	webcamVideoPath?: string | null;
 	trimRegions?: TrimRegion[];
@@ -433,6 +440,7 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 			padding = DEFAULT_PADDING,
 			frame = null,
 			cropRegion,
+			cursorFollowCrop,
 			webcam,
 			webcamVideoPath,
 			trimRegions = [],
@@ -611,6 +619,12 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 		const cursorFollowCameraRef = useRef<CursorFollowCameraState>(
 			createCursorFollowCameraState(),
 		);
+		const cursorFollowCropRef = useRef(cursorFollowCrop);
+		const cursorFollowCropStateRef = useRef<CursorFollowCropState>(
+			createCursorFollowCropState(),
+		);
+		const baseCropRegionRef = useRef(cropRegion);
+		const effectiveCropRegionRef = useRef(cropRegion);
 
 		const initializePixiRenderer = useCallback(
 			async (
@@ -1535,6 +1549,17 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 		}, [connectedZoomEasing]);
 
 		useEffect(() => {
+			cursorFollowCropRef.current = cursorFollowCrop;
+			resetCursorFollowCropState(cursorFollowCropStateRef.current);
+		}, [cursorFollowCrop?.enabled, cursorFollowCrop?.safeZoneRatio, cursorFollowCrop?.smoothness, cursorFollowCrop?.trackTextCursor]);
+
+		useEffect(() => {
+			baseCropRegionRef.current = cropRegion ?? { x: 0, y: 0, width: 1, height: 1 };
+			effectiveCropRegionRef.current = baseCropRegionRef.current;
+			resetCursorFollowCropState(cursorFollowCropStateRef.current);
+		}, [cropRegion]);
+
+		useEffect(() => {
 			cursorTelemetryRef.current = cursorTelemetry;
 			// Push to extension host for query APIs
 			extensionHost.setCursorTelemetry(
@@ -2192,6 +2217,44 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 			const ticker = () => {
 				if (suspendRenderingRef.current) {
 					return;
+				}
+
+				// Cursor-follow crop: per-frame viewport pan within the source video.
+				// When enabled, recompute the effective crop top-left from cursor
+				// telemetry and shift the video sprite to keep the cursor framed.
+				const followSettings = cursorFollowCropRef.current;
+				const baseCrop = baseCropRegionRef.current;
+				const sprite = videoSpriteRef.current;
+				const lockedDims = lockedVideoDimensionsRef.current;
+				if (followSettings?.enabled && sprite && lockedDims && baseCrop) {
+					const effectiveCrop = computeCursorFollowCrop(
+						cursorFollowCropStateRef.current,
+						cursorTelemetryRef.current,
+						currentTimeRef.current,
+						baseCrop,
+						followSettings,
+					);
+					effectiveCropRegionRef.current = effectiveCrop;
+					const fullVideoDisplayWidth = lockedDims.width * baseScaleRef.current;
+					const fullVideoDisplayHeight = lockedDims.height * baseScaleRef.current;
+					const dx = (effectiveCrop.x - baseCrop.x) * fullVideoDisplayWidth;
+					const dy = (effectiveCrop.y - baseCrop.y) * fullVideoDisplayHeight;
+					sprite.position.set(
+						baseOffsetRef.current.x - dx,
+						baseOffsetRef.current.y - dy,
+					);
+					cropBoundsRef.current = {
+						startX: effectiveCrop.x * lockedDims.width,
+						endX: effectiveCrop.x * lockedDims.width + effectiveCrop.width * lockedDims.width,
+						startY: effectiveCrop.y * lockedDims.height,
+						endY: effectiveCrop.y * lockedDims.height + effectiveCrop.height * lockedDims.height,
+					};
+					if (baseMaskRef.current.sourceCrop) {
+						baseMaskRef.current.sourceCrop = { ...effectiveCrop };
+					}
+				} else if (sprite) {
+					effectiveCropRegionRef.current = baseCrop;
+					sprite.position.set(baseOffsetRef.current.x, baseOffsetRef.current.y);
 				}
 
 				const { region, strength, blendedScale, transition } = findDominantRegion(
