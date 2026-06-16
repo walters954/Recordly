@@ -41,6 +41,11 @@ import {
 	createCursorFollowCropState,
 } from "@/components/video-editor/videoPlayback/cursorFollowCrop";
 import {
+	type CursorTextZoomState,
+	computeCursorTextZoom,
+	createCursorTextZoomState,
+} from "@/components/video-editor/videoPlayback/cursorTextZoom";
+import {
 	DEFAULT_CURSOR_CONFIG,
 	PixiCursorOverlay,
 	preloadCursorAssets,
@@ -486,6 +491,7 @@ export class FrameRenderer {
 	private springY: SpringState;
 	private cursorFollowCamera: CursorFollowCameraState;
 	private cursorFollowCropState: CursorFollowCropState = createCursorFollowCropState();
+	private cursorTextZoomState: CursorTextZoomState = createCursorTextZoomState();
 	private lastContentTimeMs: number | null = null;
 	private layoutCache: LayoutCache | null = null;
 	private currentVideoTime = 0;
@@ -3808,6 +3814,30 @@ export class FrameRenderer {
 				});
 				targetProgress = 1;
 			}
+		}
+
+		// Text-zoom layer (independent of crop pan and explicit zoom regions;
+		// explicit zooms win). The zoom spring below eases it in and out.
+		const explicitZoomActive = Boolean(region && strength > 0);
+		if (
+			this.config.cursorFollowCrop?.textZoomEnabled &&
+			!explicitZoomActive &&
+			this.config.cursorTelemetry &&
+			this.config.cursorTelemetry.length > 0
+		) {
+			const textZoom = computeCursorTextZoom(
+				this.cursorTextZoomState,
+				this.config.cursorTelemetry,
+				timeMs,
+				this.config.cursorFollowCrop,
+			);
+			if (textZoom.active) {
+				targetScaleFactor = textZoom.scale;
+				targetFocus = textZoom.focus;
+				targetProgress = 1;
+			}
+		} else if (!this.config.cursorFollowCrop?.textZoomEnabled) {
+			this.cursorTextZoomState = createCursorTextZoomState();
 		}
 
 		const state = this.animationState;

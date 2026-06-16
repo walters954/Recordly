@@ -839,6 +839,13 @@ export function normalizeProjectEditor(editor: Partial<ProjectEditorState>): Pro
 			typeof rawCursorFollowCrop?.trackTextCursor === "boolean"
 				? rawCursorFollowCrop.trackTextCursor
 				: DEFAULT_CURSOR_FOLLOW_CROP.trackTextCursor,
+		textZoomEnabled:
+			typeof rawCursorFollowCrop?.textZoomEnabled === "boolean"
+				? rawCursorFollowCrop.textZoomEnabled
+				: (DEFAULT_CURSOR_FOLLOW_CROP.textZoomEnabled ?? false),
+		...(isFiniteNumber(rawCursorFollowCrop?.textZoomDepth)
+			? { textZoomDepth: clamp(rawCursorFollowCrop.textZoomDepth, 1, 4) }
+			: {}),
 	};
 
 	const webcam: Partial<WebcamOverlaySettings> =

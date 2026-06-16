@@ -55,11 +55,11 @@ function clampViewportSize(value: number): number {
 }
 
 // Minimum normalized displacement between consecutive samples to count as active movement.
-const MOUSE_MOVE_THRESHOLD = 0.008;
+export const MOUSE_MOVE_THRESHOLD = 0.008;
 // Look-back window (ms) for mouse movement detection.
 const MOUSE_ACTIVE_WINDOW_MS = 400;
 // How long (ms) the mouse must be still before switching to text-cursor mode.
-const MOUSE_ACTIVE_DEBOUNCE_MS = 700;
+export const MOUSE_ACTIVE_DEBOUNCE_MS = 700;
 // Smoothness floor applied in text-cursor mode to keep the viewport stable.
 const TEXT_CURSOR_SMOOTHNESS = 0.92;
 
@@ -68,7 +68,7 @@ const TEXT_CURSOR_SMOOTHNESS = 0.92;
  * MOUSE_ACTIVE_WINDOW_MS ms before timeMs. Scans backwards so it can
  * early-exit as soon as one moving pair is found.
  */
-function detectMouseActivity(samples: CursorTelemetryPoint[], timeMs: number): boolean {
+export function detectMouseActivity(samples: CursorTelemetryPoint[], timeMs: number): boolean {
 	const windowStart = timeMs - MOUSE_ACTIVE_WINDOW_MS;
 	let prev: CursorTelemetryPoint | null = null;
 	for (let i = samples.length - 1; i >= 0; i--) {
@@ -88,7 +88,7 @@ function detectMouseActivity(samples: CursorTelemetryPoint[], timeMs: number): b
 /**
  * Returns true if the cursor type at or just before timeMs is the text I-beam.
  */
-function isTextCursorActive(samples: CursorTelemetryPoint[], timeMs: number): boolean {
+export function isTextCursorActive(samples: CursorTelemetryPoint[], timeMs: number): boolean {
 	if (samples.length === 0) return false;
 	for (let i = samples.length - 1; i >= 0; i--) {
 		if (samples[i].timeMs <= timeMs + 50) {
@@ -141,6 +141,26 @@ function computeTargetPosition(
 	return {
 		x: clamp(nextX, 0, maxX),
 		y: clamp(nextY, 0, maxY),
+	};
+}
+
+/**
+ * Returns the viewport top-left that centers the cursor in the viewport.
+ * Used in text-cursor mode so the viewport actively pans onto the typing spot
+ * (the I-beam position) rather than merely holding the cursor inside the safe
+ * zone. Clamped so the viewport never leaves the source bounds.
+ */
+function computeCenteredPosition(
+	viewportWidth: number,
+	viewportHeight: number,
+	cursorCx: number,
+	cursorCy: number,
+): { x: number; y: number } {
+	const maxX = Math.max(0, 1 - viewportWidth);
+	const maxY = Math.max(0, 1 - viewportHeight);
+	return {
+		x: clamp(cursorCx - viewportWidth / 2, 0, maxX),
+		y: clamp(cursorCy - viewportHeight / 2, 0, maxY),
 	};
 }
 
@@ -247,20 +267,26 @@ export function computeCursorFollowCrop(
 	// barely moves while the user is typing. The cursor is still tracked so that
 	// a click to a new text field (which triggers mouse mode) eventually lands
 	// the viewport in the right place.
-	const effectiveSmoothness =
-		settings.trackTextCursor && state.focusMode === "text"
-			? Math.max(settings.smoothness, TEXT_CURSOR_SMOOTHNESS)
-			: settings.smoothness;
+	const inTextMode = settings.trackTextCursor && state.focusMode === "text";
+	const effectiveSmoothness = inTextMode
+		? Math.max(settings.smoothness, TEXT_CURSOR_SMOOTHNESS)
+		: settings.smoothness;
 
-	const target = computeTargetPosition(
-		state.x,
-		state.y,
-		width,
-		height,
-		cursorCx,
-		cursorCy,
-		settings.safeZoneRatio,
-	);
+	// In text-cursor mode, actively pan to center the I-beam (the typing spot)
+	// instead of merely holding it inside the safe zone — eased gently by the
+	// high text-mode smoothness floor so the move never feels jarring. In mouse
+	// mode, keep the safe-zone hold so small movements don't shift the viewport.
+	const target = inTextMode
+		? computeCenteredPosition(width, height, cursorCx, cursorCy)
+		: computeTargetPosition(
+				state.x,
+				state.y,
+				width,
+				height,
+				cursorCx,
+				cursorCy,
+				settings.safeZoneRatio,
+			);
 
 	const dtMs = Math.max(0, timeMs - state.lastTimeMs);
 	const factor = getResponseFactor(effectiveSmoothness, dtMs);

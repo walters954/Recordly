@@ -154,6 +154,31 @@ describe("computeCursorFollowCrop — trackTextCursor", () => {
 		expect(state.focusMode).toBe("mouse");
 	});
 
+	it("pans to center the I-beam (typing spot) once in text mode", () => {
+		const state = createCursorFollowCropState();
+		// Mouse parked off-center at 0.8, 0.8 with a text cursor, held still.
+		const staticSamples: CursorTelemetryPoint[] = [];
+		for (let t = 0; t <= 4000; t += 33) {
+			staticSamples.push(sample(t, 0.8, 0.8, "text"));
+		}
+		// smoothness 0 so the eased move resolves in a single step per frame.
+		const cfg = settings({ trackTextCursor: true, smoothness: 0 });
+
+		computeCursorFollowCrop(state, staticSamples, 0, BASE_CROP, cfg);
+		// Drive well past the debounce so we're in text mode and the ease settles.
+		let result = computeCursorFollowCrop(state, staticSamples, 800, BASE_CROP, cfg);
+		for (let t = 900; t <= 4000; t += 100) {
+			result = computeCursorFollowCrop(state, staticSamples, t, BASE_CROP, cfg);
+		}
+
+		expect(state.focusMode).toBe("text");
+		// Centered target = cursor - viewport/2, clamped to [0, 1 - size].
+		const maxX = 1 - BASE_CROP.width;
+		const maxY = 1 - BASE_CROP.height;
+		expect(result.x).toBeCloseTo(Math.min(maxX, 0.8 - BASE_CROP.width / 2), 2);
+		expect(result.y).toBeCloseTo(Math.min(maxY, 0.8 - BASE_CROP.height / 2), 2);
+	});
+
 	it("resets focusMode to mouse on re-initialization (time scrubbed backwards)", () => {
 		const state = createCursorFollowCropState();
 		const staticSamples: CursorTelemetryPoint[] = [];

@@ -295,6 +295,10 @@ export function CropControl({
 		if (!cursorFollow || !onCursorFollowChange) return;
 		onCursorFollowChange({ ...cursorFollow, trackTextCursor: value });
 	};
+	const handleTextZoomChange = (value: boolean) => {
+		if (!cursorFollow || !onCursorFollowChange) return;
+		onCursorFollowChange({ ...cursorFollow, textZoomEnabled: value });
+	};
 
 	const sourceWidthPx = videoElement?.videoWidth ?? 0;
 	const sourceHeightPx = videoElement?.videoHeight ?? 0;
@@ -332,6 +336,20 @@ export function CropControl({
 							type="checkbox"
 							checked={cursorFollow.enabled}
 							onChange={(e) => handleToggleFollow(e.target.checked)}
+							className="h-4 w-4"
+						/>
+					</label>
+					<label className="flex items-center justify-between gap-3 text-sm">
+						<span className="flex flex-col">
+							<span className="font-medium">Text zoom</span>
+							<span className="text-xs text-muted-foreground/60">
+								Zooms in on the typing area while you type
+							</span>
+						</span>
+						<input
+							type="checkbox"
+							checked={cursorFollow.textZoomEnabled ?? false}
+							onChange={(e) => handleTextZoomChange(e.target.checked)}
 							className="h-4 w-4"
 						/>
 					</label>

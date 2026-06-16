@@ -508,11 +508,22 @@ export interface CursorFollowCropSettings {
 	/** Editor-only: which view to show in the crop panel. */
 	previewMode: CursorFollowCropPreviewMode;
 	/**
-	 * When true: viewport locks to the text I-beam position while typing and
-	 * only aggressively follows the mouse when it's actively moving. Mouse
-	 * always wins; transitions are debounced to avoid jarring cuts.
+	 * When true: while typing (I-beam active + mouse still), the viewport gently
+	 * pans to center the I-beam (the typing spot); it snaps back to safe-zone
+	 * mouse-following the moment the mouse moves. Mouse always wins; transitions
+	 * are debounced to avoid jarring cuts.
 	 */
 	trackTextCursor: boolean;
+	/**
+	 * Independent "text zoom" layer. When true, the camera eases a zoom-in
+	 * centered on the typing spot whenever sustained typing is detected
+	 * (I-beam active + mouse still), then eases back out once the mouse moves.
+	 * This is a separate layer from `enabled` (the crop pan) and from explicit
+	 * zoom regions — explicit zooms always win over it.
+	 */
+	textZoomEnabled?: boolean;
+	/** Zoom depth scale for the text-zoom layer (>1). Defaults to DEFAULT_TEXT_ZOOM_DEPTH_SCALE. */
+	textZoomDepth?: number;
 }
 
 export const DEFAULT_CURSOR_FOLLOW_CROP: CursorFollowCropSettings = {
@@ -521,6 +532,7 @@ export const DEFAULT_CURSOR_FOLLOW_CROP: CursorFollowCropSettings = {
 	smoothness: 0.5,
 	previewMode: "source",
 	trackTextCursor: false,
+	textZoomEnabled: false,
 };
 
 export interface Padding {
