@@ -228,6 +228,14 @@ type PendingExportSave = {
 	fileName: string;
 	arrayBuffer?: ArrayBuffer;
 	tempFilePath?: string;
+	captionSidecar?: {
+		format: "srt" | "vtt" | "both";
+		cues: Array<{
+			startMs: number;
+			endMs: number;
+			text: string;
+		}>;
+	};
 };
 
 type CancelableExporter = {
@@ -526,6 +534,7 @@ export default function VideoEditor() {
 	const [autoCaptionSettings, setAutoCaptionSettings] = useState<AutoCaptionSettings>(
 		DEFAULT_AUTO_CAPTION_SETTINGS,
 	);
+	const [includeCaptionSidecar, setIncludeCaptionSidecar] = useState(true);
 	const [whisperExecutablePath, setWhisperExecutablePath] = useState<string | null>(
 		initialEditorPreferences.whisperExecutablePath,
 	);
@@ -601,6 +610,32 @@ export default function VideoEditor() {
 	const [gifSizePreset, setGifSizePreset] = useState<GifSizePreset>(
 		initialEditorPreferences.gifSizePreset,
 	);
+	const hasCaptionsForSidecar = autoCaptionSettings.enabled && autoCaptions.length > 0;
+	const captionSidecarCues = useMemo(
+		() =>
+			autoCaptions
+				.filter(
+					(cue) =>
+						Number.isFinite(cue.startMs) &&
+						Number.isFinite(cue.endMs) &&
+						cue.endMs > cue.startMs &&
+						typeof cue.text === "string" &&
+						cue.text.trim().length > 0,
+				)
+				.map((cue) => ({
+					startMs: cue.startMs,
+					endMs: cue.endMs,
+					text: cue.text,
+				})),
+		[autoCaptions],
+	);
+	const captionSidecarPayload =
+		hasCaptionsForSidecar && captionSidecarCues.length > 0 && includeCaptionSidecar
+			? {
+					format: "both" as const,
+					cues: captionSidecarCues,
+				}
+			: undefined;
 	const [exportedFilePath, setExportedFilePath] = useState<string | undefined>(undefined);
 	const [hasPendingExportSave, setHasPendingExportSave] = useState(false);
 	const [lastSavedSnapshot, setLastSavedSnapshot] = useState<EditorProjectData | null>(null);
@@ -1265,18 +1300,10 @@ export default function VideoEditor() {
 		setExportProgress(resolveSavingExportProgress);
 	}, []);
 
-	const handleShowCursorChange = useCallback(
-		(nextShowCursor: boolean) => {
-			if (nextShowCursor && sessionNativeCaptureUnavailable) {
-				setNativeCaptureUnavailableModalOpen(true);
-				return;
-			}
-
-			setSessionShowCursorOverride(null);
-			setShowCursor(nextShowCursor);
-		},
-		[sessionNativeCaptureUnavailable],
-	);
+	const handleShowCursorChange = useCallback((nextShowCursor: boolean) => {
+		setSessionShowCursorOverride(null);
+		setShowCursor(nextShowCursor);
+	}, []);
 
 	const remountPreview = useCallback(() => {
 		setIsPreviewReady(false);
@@ -1297,7 +1324,12 @@ export default function VideoEditor() {
 	}, []);
 
 	const saveBlobExport = useCallback(
-		async (blob: Blob, fileName: string, outputPath: string | null = null) => {
+		async (
+			blob: Blob,
+			fileName: string,
+			outputPath: string | null = null,
+			captionSidecar?: PendingExportSave["captionSidecar"],
+		) => {
 			const extension = fileName.split(".").pop()?.toLowerCase() || "bin";
 			const hasExportStreamApi =
 				typeof window !== "undefined" &&
@@ -1314,10 +1346,12 @@ export default function VideoEditor() {
 							tempPath: tempFilePath,
 							fileName,
 							outputPath,
+							captionSidecar,
 						}),
 						pendingSave: {
 							fileName,
 							tempFilePath,
+							captionSidecar,
 						} satisfies PendingExportSave,
 					};
 				}
@@ -1356,11 +1390,20 @@ export default function VideoEditor() {
 			const arrayBuffer = await blob.arrayBuffer();
 			return {
 				saveResult: outputPath
-					? await window.electronAPI.writeExportedVideoToPath(arrayBuffer, outputPath)
-					: await window.electronAPI.saveExportedVideo(arrayBuffer, fileName),
+					? await window.electronAPI.writeExportedVideoToPath(
+							arrayBuffer,
+							outputPath,
+							captionSidecar,
+						)
+					: await window.electronAPI.saveExportedVideo(
+							arrayBuffer,
+							fileName,
+							captionSidecar,
+						),
 				pendingSave: {
 					fileName,
 					arrayBuffer,
+					captionSidecar,
 				} satisfies PendingExportSave,
 			};
 		},
@@ -4478,6 +4521,10 @@ export default function VideoEditor() {
 					if (result.success && (result.blob || result.tempFilePath)) {
 						const timestamp = Date.now();
 						const fileName = `export-${timestamp}.mp4`;
+						const sidecarForThisExport =
+							settings.includeCaptionSidecar && captionSidecarPayload
+								? captionSidecarPayload
+								: undefined;
 						markExportAsSaving();
 
 						let saveResult: {
@@ -4499,8 +4546,13 @@ export default function VideoEditor() {
 									smokeExportConfig.enabled && smokeExportConfig.outputPath
 										? smokeExportConfig.outputPath
 										: null,
+								captionSidecar: sidecarForThisExport,
 							});
-							pendingOnCancel = { fileName, tempFilePath: result.tempFilePath };
+							pendingOnCancel = {
+								fileName,
+								tempFilePath: result.tempFilePath,
+								captionSidecar: sidecarForThisExport,
+							};
 						} else if (result.blob) {
 							// Legacy fallback: some export paths still surface a Blob, but in
 							// Electron we stream it into a temp file first so save/finalize
@@ -4509,6 +4561,7 @@ export default function VideoEditor() {
 								result.blob,
 								fileName,
 								smokeExportConfig.enabled ? smokeExportConfig.outputPath : null,
+								sidecarForThisExport,
 							);
 							saveResult = blobSave.saveResult;
 							pendingOnCancel = blobSave.pendingSave;
@@ -4722,6 +4775,7 @@ export default function VideoEditor() {
 			annotationRegions,
 			autoCaptions,
 			autoCaptionSettings,
+			captionSidecarPayload,
 			isPlaying,
 			exportQuality,
 			effectiveZoomRegions,
@@ -4879,6 +4933,7 @@ export default function VideoEditor() {
 			sourceWidth,
 			sourceHeight,
 			exportFormat,
+			includeCaptionSidecar: hasCaptionsForSidecar && includeCaptionSidecar,
 			exportEncodingMode,
 			exportQuality,
 			mp4FrameRate,
@@ -4902,6 +4957,8 @@ export default function VideoEditor() {
 		gifFrameRate,
 		gifLoop,
 		gifSizePreset,
+		hasCaptionsForSidecar,
+		includeCaptionSidecar,
 		exportBackendPreference,
 		exportPipelineModel,
 		handleExport,
@@ -4946,11 +5003,13 @@ export default function VideoEditor() {
 				tempPath: pendingSave.tempFilePath,
 				fileName: pendingSave.fileName,
 				outputPath: null,
+				captionSidecar: pendingSave.captionSidecar,
 			});
 		} else if (pendingSave.arrayBuffer) {
 			saveResult = await window.electronAPI.saveExportedVideo(
 				pendingSave.arrayBuffer,
 				pendingSave.fileName,
+				pendingSave.captionSidecar,
 			);
 		} else {
 			saveResult = { success: false, message: "No pending export to save" };
@@ -5691,6 +5750,9 @@ export default function VideoEditor() {
 									onGifLoopChange={setGifLoop}
 									gifSizePreset={gifSizePreset}
 									onGifSizePresetChange={setGifSizePreset}
+									showCaptionSidecarOption={hasCaptionsForSidecar && exportFormat === "mp4"}
+									includeCaptionSidecar={includeCaptionSidecar}
+									onIncludeCaptionSidecarChange={setIncludeCaptionSidecar}
 									mp4OutputDimensions={mp4OutputDimensions}
 									gifOutputDimensions={gifOutputDimensions}
 									onExport={handleStartExportFromDropdown}
