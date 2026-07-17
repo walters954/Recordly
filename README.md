@@ -13,6 +13,8 @@ Language: EN | [简中](README.zh-CN.md)
 [Recordly](https://www.recordly.dev) is your **open-source screen recorder** and editor for **walkthroughs, demos, product videos**, and more. 
 **Accepting PRs.**
 
+> **Fork notice:** This is a fork of [webadderallorg/Recordly](https://github.com/webadderallorg/Recordly) (tracked as `upstream`). On top of upstream we maintain several custom editor features — **cursor-follow crop with text-cursor focus**, an independent **text-zoom layer**, **connected-zoom pan transitions**, and **waveform decode guards**. These must be preserved when merging upstream changes; see [`CLAUDE.md`](CLAUDE.md) for the feature list, the affected files, and the upstream-merge checklist.
+
 <img width="1280" height="720" alt="MP4 to GIF export (4)" src="https://github.com/user-attachments/assets/e6d68606-5fc0-4f70-99cd-7521982dc13b" />
 
 
