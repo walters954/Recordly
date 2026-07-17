@@ -88,6 +88,8 @@
 		"webcamFootageAdded": "Metraje de cámara vinculado",
 		"webcamFootageRemoved": "Metraje de cámara eliminado",
 		"webcamSize": "Tamaño de cámara",
+		"webcamWidth": "Ancho de cámara",
+		"webcamHeight": "Alto de cámara",
 		"webcamCrop": "Recorte de cámara",
 		"webcamReactToZoom": "La cámara reacciona al zoom",
 		"webcamMirror": "Reflejar cámara",
@@ -108,6 +110,7 @@
 	"sections": {
 		"scene": "Escena",
 		"captions": "Subtítulos",
+		"caption": "Subtítulo",
 		"zoom": "Zoom",
 		"cursor": "Cursor",
 		"webcam": "Cámara",
@@ -115,7 +118,9 @@
 		"crop": "Recorte"
 	},
 	"captions": {
+		"selectOnTimeline": "Selecciona un subtítulo en la línea de tiempo para editarlo.",
 		"enabled": "Mostrar",
+		"timelineQuickAdd": "Pasar el cursor para añadir en la línea de tiempo",
 		"language": "Idioma",
 		"downloading": "Descargando...",
 		"deleteModel": "Eliminar modelo",

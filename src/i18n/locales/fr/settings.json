@@ -88,6 +88,8 @@
 		"webcamFootageAdded": "Vidéo de webcam liée",
 		"webcamFootageRemoved": "Vidéo de webcam supprimée",
 		"webcamSize": "Taille de la webcam",
+		"webcamWidth": "Largeur de la webcam",
+		"webcamHeight": "Hauteur de la webcam",
 		"webcamCrop": "Recadrage de la webcam",
 		"webcamReactToZoom": "La webcam réagit au zoom",
 		"webcamMirror": "Miroir webcam",
@@ -108,6 +110,7 @@
 	"sections": {
 		"scene": "Scène",
 		"captions": "Sous-titres",
+		"caption": "Sous-titre",
 		"zoom": "Zoom",
 		"cursor": "Curseur",
 		"webcam": "Webcam",
@@ -115,7 +118,9 @@
 		"crop": "Recadrage"
 	},
 	"captions": {
+		"selectOnTimeline": "Sélectionnez un sous-titre sur la timeline pour le modifier.",
 		"enabled": "Afficher",
+		"timelineQuickAdd": "Survoler pour ajouter sur la timeline",
 		"language": "Langue",
 		"downloading": "Téléchargement...",
 		"deleteModel": "Supprimer le modèle",

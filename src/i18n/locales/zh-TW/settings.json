@@ -88,6 +88,8 @@
 		"webcamFootageAdded": "已連結網路攝影機素材",
 		"webcamFootageRemoved": "已移除網路攝影機素材",
 		"webcamSize": "網路攝影機大小",
+		"webcamWidth": "網路攝影機寬度",
+		"webcamHeight": "網路攝影機高度",
 		"webcamCrop": "網路攝影機裁剪",
 		"webcamReactToZoom": "網路攝影機跟隨縮放",
 		"webcamMirror": "鏡像網路攝影機",
@@ -108,6 +110,7 @@
 	"sections": {
 		"scene": "場景",
 		"captions": "字幕",
+		"caption": "字幕編輯",
 		"zoom": "縮放",
 		"cursor": "游標",
 		"webcam": "網路攝影機",
@@ -115,7 +118,9 @@
 		"crop": "裁切"
 	},
 	"captions": {
+		"selectOnTimeline": "在時間軸上選擇字幕進行編輯。",
 		"enabled": "顯示",
+		"timelineQuickAdd": "懸停以在時間軸上新增",
 		"language": "語言",
 		"downloading": "下載中...",
 		"deleteModel": "刪除模型",

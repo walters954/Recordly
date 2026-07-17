@@ -22,6 +22,7 @@ import { DEFAULT_WALLPAPER_PATH } from "@/lib/wallpapers";
 import { ASPECT_RATIOS, type AspectRatio, isCustomAspectRatio } from "@/utils/aspectRatioUtils";
 import { CURSOR_MOTION_PRESETS, resolveCursorMotionPresetId } from "./cursorMotionPresets";
 import {
+	ADVANCED_VERTICAL_PADDING_MAX,
 	type AnnotationRegion,
 	type AudioRegion,
 	type AutoCaptionAnimation,
@@ -762,6 +763,10 @@ export function normalizeProjectEditor(editor: Partial<ProjectEditorState>): Pro
 			typeof rawAutoCaptionSettings.enabled === "boolean"
 				? rawAutoCaptionSettings.enabled
 				: DEFAULT_AUTO_CAPTION_SETTINGS.enabled,
+		timelineQuickAdd:
+			typeof rawAutoCaptionSettings.timelineQuickAdd === "boolean"
+				? rawAutoCaptionSettings.timelineQuickAdd
+				: DEFAULT_AUTO_CAPTION_SETTINGS.timelineQuickAdd,
 		language:
 			typeof rawAutoCaptionSettings.language === "string" &&
 			rawAutoCaptionSettings.language.trim()
@@ -982,14 +987,17 @@ export function normalizeProjectEditor(editor: Partial<ProjectEditorState>): Pro
 			const p = editor.padding;
 			if (p && typeof p === "object") {
 				const linked = typeof p.linked === "boolean" ? p.linked : true;
-				const top = isFiniteNumber(p.top) ? clamp(p.top, 0, 100) : DEFAULT_PADDING.top;
+				const verticalMax = linked ? 100 : ADVANCED_VERTICAL_PADDING_MAX;
+				const top = isFiniteNumber(p.top)
+					? clamp(p.top, 0, verticalMax)
+					: DEFAULT_PADDING.top;
 				if (linked) {
 					return { top, bottom: top, left: top, right: top, linked: true };
 				}
 				return {
 					top,
 					bottom: isFiniteNumber(p.bottom)
-						? clamp(p.bottom, 0, 100)
+						? clamp(p.bottom, 0, verticalMax)
 						: DEFAULT_PADDING.bottom,
 					left: isFiniteNumber(p.left) ? clamp(p.left, 0, 100) : DEFAULT_PADDING.left,
 					right: isFiniteNumber(p.right) ? clamp(p.right, 0, 100) : DEFAULT_PADDING.right,
@@ -1061,6 +1069,16 @@ export function normalizeProjectEditor(editor: Partial<ProjectEditorState>): Pro
 					? webcam.corner
 					: DEFAULT_WEBCAM_OVERLAY.corner,
 			size: isFiniteNumber(webcam.size) ? clamp(webcam.size, 10, 100) : DEFAULT_WEBCAM_SIZE,
+			width: isFiniteNumber(webcam.width)
+				? clamp(webcam.width, 10, 100)
+				: isFiniteNumber(webcam.size)
+					? clamp(webcam.size, 10, 100)
+					: DEFAULT_WEBCAM_SIZE,
+			height: isFiniteNumber(webcam.height)
+				? clamp(webcam.height, 10, 100)
+				: isFiniteNumber(webcam.size)
+					? clamp(webcam.size, 10, 100)
+					: DEFAULT_WEBCAM_SIZE,
 			reactToZoom:
 				typeof webcam.reactToZoom === "boolean"
 					? webcam.reactToZoom

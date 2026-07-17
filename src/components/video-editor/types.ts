@@ -103,6 +103,7 @@ export type EditorEffectSection =
 	| "scene"
 	| "cursor"
 	| "captions"
+	| "caption"
 	| "webcam"
 	| "settings"
 	| "zoom"
@@ -136,6 +137,8 @@ export interface WebcamOverlaySettings {
 	positionX: number;
 	positionY: number;
 	size: number;
+	width: number;
+	height: number;
 	reactToZoom: boolean;
 	cornerRadius: number;
 	shadow: number;
@@ -198,6 +201,8 @@ export const DEFAULT_WEBCAM_OVERLAY: WebcamOverlaySettings = {
 	positionX: DEFAULT_WEBCAM_POSITION_X,
 	positionY: DEFAULT_WEBCAM_POSITION_Y,
 	size: DEFAULT_WEBCAM_SIZE,
+	width: DEFAULT_WEBCAM_SIZE,
+	height: DEFAULT_WEBCAM_SIZE,
 	reactToZoom: DEFAULT_WEBCAM_REACT_TO_ZOOM,
 	cornerRadius: DEFAULT_WEBCAM_CORNER_RADIUS,
 	shadow: DEFAULT_WEBCAM_SHADOW,
@@ -535,6 +540,8 @@ export const DEFAULT_CURSOR_FOLLOW_CROP: CursorFollowCropSettings = {
 	textZoomEnabled: false,
 };
 
+export const ADVANCED_VERTICAL_PADDING_MAX = 250;
+
 export interface Padding {
 	top: number;
 	bottom: number;
@@ -584,6 +591,8 @@ export type AutoCaptionAnimation = "none" | "fade" | "rise" | "pop";
 
 export interface AutoCaptionSettings {
 	enabled: boolean;
+	/** Show the hover ghost on the timeline caption track for click-to-add. */
+	timelineQuickAdd: boolean;
 	language: string;
 	fontFamily: string;
 	fontSize: number;
@@ -599,6 +608,7 @@ export interface AutoCaptionSettings {
 
 export const DEFAULT_AUTO_CAPTION_SETTINGS: AutoCaptionSettings = {
 	enabled: false,
+	timelineQuickAdd: true,
 	language: "auto",
 	fontFamily: getDefaultCaptionFontFamily(),
 	fontSize: 30,

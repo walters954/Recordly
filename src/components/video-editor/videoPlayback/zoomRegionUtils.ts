@@ -34,14 +34,6 @@ type ConnectedPanTransition = {
 	endScale: number;
 };
 
-function lerp(start: number, end: number, amount: number) {
-	return start + (end - start) * amount;
-}
-
-function easeConnectedPan(value: number) {
-	return cubicBezier(0.1, 0.0, 0.2, 1.0, value);
-}
-
 export function computeRegionStrength(
 	region: ZoomRegion,
 	timeMs: number,
@@ -77,13 +69,6 @@ export function computeRegionStrength(
 
 	const progress = clamp01((adjustedTimeMs - zoomOutStart) / zoomOutDurationMs);
 	return 1 - easeOutZoom(progress);
-}
-
-function getLinearFocus(start: ZoomFocus, end: ZoomFocus, amount: number): ZoomFocus {
-	return {
-		cx: lerp(start.cx, end.cx, amount),
-		cy: lerp(start.cy, end.cy, amount),
-	};
 }
 
 function getResolvedFocus(region: ZoomRegion, zoomScale: number): ZoomFocus {
@@ -197,6 +182,21 @@ function getConnectedRegionHold(timeMs: number, connectedPairs: ConnectedRegionP
 	}
 
 	return null;
+}
+
+function lerp(start: number, end: number, amount: number) {
+	return start + (end - start) * amount;
+}
+
+function easeConnectedPan(value: number) {
+	return cubicBezier(0.1, 0.0, 0.2, 1.0, value);
+}
+
+function getLinearFocus(start: ZoomFocus, end: ZoomFocus, amount: number): ZoomFocus {
+	return {
+		cx: lerp(start.cx, end.cx, amount),
+		cy: lerp(start.cy, end.cy, amount),
+	};
 }
 
 function getConnectedRegionTransition(connectedPairs: ConnectedRegionPair[], timeMs: number) {
